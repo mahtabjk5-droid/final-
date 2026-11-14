@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', 'Noto Nastaliq Urdu', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #030B10;
+    color: #F8F7F3;
+    overflow-x: hidden;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono-tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Lightweight static Ajrak canvas (Zero CPU/GPU frame thrashing) */
+.ajrak-canvas-bg {
+  background-color: #030B10;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.14) 0%, transparent 60%),
+    linear-gradient(135deg, #040F16 0%, #2B0814 45%, #07262B 100%);
+}
+
+.ajrak-crimson-mode .ajrak-canvas-bg {
+  background-color: #12040A;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.18) 0%, transparent 60%),
+    linear-gradient(135deg, #260610 0%, #0A1826 48%, #3B0B18 100%);
+}
+
+.imax-vignette {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: radial-gradient(circle at 50% 45%, transparent 62%, rgba(2, 6, 10, 0.65) 100%);
+}
+
+.anamorphic-lens-flare {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent 5%, rgba(245, 158, 11, 0.85) 35%, #FDE68A 50%, rgba(20, 184, 166, 0.85) 65%, transparent 95%);
+}
+
+/* Fast solid-translucent glass without expensive backdrop-filter blur */
+.ajrak-moving-glass {
+  background: linear-gradient(135deg, rgba(6, 22, 32, 0.96) 0%, rgba(36, 9, 19, 0.94) 50%, rgba(7, 34, 38, 0.96) 100%);
+  border-color: rgba(245, 158, 11, 0.28);
+  color: #F8F7F3;
+  box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.7);
+}
+
+.ajrak-well {
+  background-color: rgba(3, 12, 18, 0.94);
+  border-color: rgba(245, 158, 11, 0.24);
+  color: #F8F7F3;
+}
+
+.kashi-card {
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.kashi-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(245, 158, 11, 0.55);
+}
+
+.kashi-btn {
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.kashi-btn:hover {
+  transform: translateY(-1px);
+}
+
+.ajrak-mosaic-band {
+  height: 4px;
+  width: 100%;
+  background-image: repeating-linear-gradient(
+    135deg,
+    #9B1C2E 0 8px,
+    #0D2327 8px 16px,
+    #F59E0B 16px 20px,
+    #0F766E 20px 28px,
+    #FDE68A 28px 32px
+  );
+}
+
+@media print {
+  .no-print, .imax-vignette { display: none !important; }
+  body { background: #ffffff !important; color: #0D2327 !important; }
+}

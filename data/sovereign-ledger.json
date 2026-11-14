@@ -1,0 +1,383 @@
+{
+  "killSwitchActive": false,
+  "agentTokensRevoked": false,
+  "activeAgentTokenCount": 12,
+  "failedAttempts": 0,
+  "lockoutUntil": null,
+  "lastToggledAt": null,
+  "rails": [
+    {
+      "id": "raast-p2p",
+      "name": "SBP Raast Instant P2P",
+      "category": "Domestic Raast & Wallets",
+      "frozen": false,
+      "latencyMs": 14
+    },
+    {
+      "id": "raast-qr",
+      "name": "SBP Raast Merchant QR",
+      "category": "Domestic Raast & Wallets",
+      "frozen": false,
+      "latencyMs": 18
+    },
+    {
+      "id": "easypaisa",
+      "name": "Easypaisa Wallet API",
+      "category": "Domestic Raast & Wallets",
+      "frozen": false,
+      "latencyMs": 29
+    },
+    {
+      "id": "jazzcash",
+      "name": "JazzCash Disbursement",
+      "category": "Domestic Raast & Wallets",
+      "frozen": false,
+      "latencyMs": 31
+    },
+    {
+      "id": "sadapay",
+      "name": "SadaPay Business Rail",
+      "category": "Domestic Raast & Wallets",
+      "frozen": false,
+      "latencyMs": 24
+    },
+    {
+      "id": "nayapay",
+      "name": "NayaPay Merchant IBFT",
+      "category": "Domestic Raast & Wallets",
+      "frozen": false,
+      "latencyMs": 27
+    },
+    {
+      "id": "meezan-ibft",
+      "name": "Meezan Islamic IBFT",
+      "category": "Commercial Banking",
+      "frozen": false,
+      "latencyMs": 42
+    },
+    {
+      "id": "hbl-konnect",
+      "name": "HBL Konnect Trade Desk",
+      "category": "Commercial Banking",
+      "frozen": false,
+      "latencyMs": 48
+    },
+    {
+      "id": "ubl-omni",
+      "name": "UBL Omni / Digital IBFT",
+      "category": "Commercial Banking",
+      "frozen": false,
+      "latencyMs": 46
+    },
+    {
+      "id": "alfalah-islamic",
+      "name": "Bank Alfalah Islamic RTGS",
+      "category": "Commercial Banking",
+      "frozen": false,
+      "latencyMs": 39
+    },
+    {
+      "id": "faysal-islamic",
+      "name": "Faysal Islami Escrow Rail",
+      "category": "Commercial Banking",
+      "frozen": false,
+      "latencyMs": 44
+    },
+    {
+      "id": "sar-mudad",
+      "name": "Riyadh SAR Trade Settlement",
+      "category": "Gulf & FX",
+      "frozen": false,
+      "latencyMs": 68
+    },
+    {
+      "id": "uae-fts",
+      "name": "Dubai AED Corridor FTS",
+      "category": "Gulf & FX",
+      "frozen": false,
+      "latencyMs": 64
+    },
+    {
+      "id": "qatar-qcb",
+      "name": "Doha QAR Murabaha Clear",
+      "category": "Gulf & FX",
+      "frozen": false,
+      "latencyMs": 74
+    },
+    {
+      "id": "oman-omr",
+      "name": "Muscat OMR Produce Desk",
+      "category": "Gulf & FX",
+      "frozen": false,
+      "latencyMs": 79
+    },
+    {
+      "id": "swift-iso20022",
+      "name": "ISO-20022 Export FX Gateway",
+      "category": "Gulf & FX",
+      "frozen": false,
+      "latencyMs": 92
+    },
+    {
+      "id": "mukasa-net",
+      "name": "Mukasa Zero-Cash Clearing",
+      "category": "Sovereign Escrows",
+      "frozen": false,
+      "latencyMs": 6
+    },
+    {
+      "id": "waqf-pool",
+      "name": "Khufiya Sadaqah Reserve Pool",
+      "category": "Sovereign Escrows",
+      "frozen": false,
+      "latencyMs": 9
+    },
+    {
+      "id": "haq-mazdoor",
+      "name": "Haq-e-Mazdoor 0% Fee Vault",
+      "category": "Sovereign Escrows",
+      "frozen": false,
+      "latencyMs": 11
+    },
+    {
+      "id": "gold-vault",
+      "name": "24K Physical Gold Hedge",
+      "category": "Sovereign Escrows",
+      "frozen": false,
+      "latencyMs": 16
+    },
+    {
+      "id": "solar-syndicate",
+      "name": "Ameen Solar Mudarabah Escrow",
+      "category": "Sovereign Escrows",
+      "frozen": false,
+      "latencyMs": 15
+    }
+  ],
+  "deals": [
+    {
+      "id": "deal-sakrand-basmati-01",
+      "title": "Sakrand Super Kernel Basmati Export Lot #1",
+      "sector": "sector-1-food-water",
+      "commodity": "Super Kernel Basmati Rice (25 Tons)",
+      "originCity": "Sakrand, Sindh",
+      "destinationCity": "Riyadh, Saudi Arabia",
+      "supplierName": "Al-Sindh Rice Millers Cooperative (Sakrand)",
+      "buyerName": "Najd Al-Barakah Foods LLC (Riyadh)",
+      "dealValuePkr": 4850000,
+      "dealValueUsd": 17446,
+      "ujrahMarginPct": 6.5,
+      "mudarabahEquitySharePct": 0,
+      "syndicateMembers": 1,
+      "khufiyaSadaqahPct": 7,
+      "niyatChecklist": {
+        "halalOrigin": true,
+        "zeroRiba": true,
+        "zeroDeception": true,
+        "haqEMazdoorPriority": true
+      },
+      "defectDisclosure": "1.1% natural moisture shrinkage disclosed upfront per Siddiq (RA) Zero-Hype protocol.",
+      "warehouseProof": {
+        "videoFileRef": "sakrand_lot01_unedited_gps.mp4",
+        "gpsCoords": "26.1384° N, 68.2747° E (Sakrand)",
+        "capturedAt": "2026-11-12T08:15:00.000Z",
+        "verified": true
+      },
+      "otaqMajlisWitnesses": {
+        "witness1": "Haji Abdul Karim Lakho",
+        "witness2": "Engr. Tariq Mehmood Rahu",
+        "attestedAt": "2026-11-12T09:00:00.000Z",
+        "shahadahHash": "aeeedae6caff6310fb24728ba6b5f59cc509cbf53c811a0bf74ebd004f498b21"
+      },
+      "status": "active",
+      "contractHash": "fe13c857490996cd8bbf19d1b8579fc64212bd67dcf53079a12c680bd0b3819a",
+      "createdAt": "2026-11-12T08:00:00.000Z"
+    },
+    {
+      "id": "deal-khairpur-dates-02",
+      "title": "Khairpur Aseel Dates & Sindhri Mango Cold-Chain",
+      "sector": "sector-1-food-water",
+      "commodity": "Organic Aseel Dates (18 Tons)",
+      "originCity": "Khairpur / Sakrand Belt",
+      "destinationCity": "Dubai, UAE",
+      "supplierName": "Indus Orchard Farmers Pool",
+      "buyerName": "Al-Mizan Fresh Markets Dubai",
+      "dealValuePkr": 3200000,
+      "dealValueUsd": 11511,
+      "ujrahMarginPct": 7,
+      "mudarabahEquitySharePct": 0,
+      "syndicateMembers": 1,
+      "khufiyaSadaqahPct": 8,
+      "niyatChecklist": {
+        "halalOrigin": true,
+        "zeroRiba": true,
+        "zeroDeception": true,
+        "haqEMazdoorPriority": true
+      },
+      "defectDisclosure": "1.5% outer skin blemish on Grade-B crates disclosed upfront.",
+      "warehouseProof": {
+        "videoFileRef": "khairpur_coldstore_gps.mp4",
+        "gpsCoords": "27.5295° N, 68.7592° E (Khairpur)",
+        "capturedAt": "2026-11-13T10:30:00.000Z",
+        "verified": true
+      },
+      "otaqMajlisWitnesses": {
+        "witness1": "Ustad Muhammad Saleh Jamali",
+        "witness2": "Mir Hassan Zardari",
+        "attestedAt": "2026-11-13T11:15:00.000Z",
+        "shahadahHash": "f3dea2a59e1b9f1baa9f75c14aa0cb940d691a54c6716f2575bfe10182a4b85f"
+      },
+      "status": "witnessed",
+      "contractHash": "7465632ff3bea616debdeeef3fc927559c5709e053995d64f4d5abf541e17950",
+      "createdAt": "2026-11-13T10:00:00.000Z"
+    },
+    {
+      "id": "deal-sakrand-solar-03",
+      "title": "Ameen Solar Micro-Grid & Clean RO Water Cluster #1",
+      "sector": "sector-2-solar-energy",
+      "commodity": "120kW Off-Grid Solar + 15,000L/day RO Plant",
+      "originCity": "Sakrand, Sindh",
+      "destinationCity": "Shaheed Benazirabad Agri-Cluster",
+      "supplierName": "Indus Renewable Consortium",
+      "buyerName": "32-Shop Sakrand Bazaar Syndicate",
+      "dealValuePkr": 9600000,
+      "dealValueUsd": 34532,
+      "ujrahMarginPct": 0,
+      "mudarabahEquitySharePct": 22,
+      "syndicateMembers": 32,
+      "khufiyaSadaqahPct": 10,
+      "niyatChecklist": {
+        "halalOrigin": true,
+        "zeroRiba": true,
+        "zeroDeception": true,
+        "haqEMazdoorPriority": true
+      },
+      "defectDisclosure": "Monsoon dust cleaning schedule disclosed (2% seasonal output variance).",
+      "warehouseProof": {
+        "videoFileRef": "sakrand_solar_ro_commissioning.mp4",
+        "gpsCoords": "26.1401° N, 68.2712° E (Sakrand)",
+        "capturedAt": "2026-11-14T06:00:00.000Z",
+        "verified": true
+      },
+      "otaqMajlisWitnesses": {
+        "witness1": "Haji Abdul Karim Lakho",
+        "witness2": "Engr. Tariq Mehmood Rahu",
+        "attestedAt": "2026-11-14T07:00:00.000Z",
+        "shahadahHash": "23332de482179ec35cc9db691713b47211700763da9a806ca239e9a425d5682c"
+      },
+      "status": "active",
+      "contractHash": "9730432fc6f21e564417a8db94f9e97ef725bbaa88cfd35f992a7e6322bcd61e",
+      "createdAt": "2026-11-14T05:30:00.000Z"
+    }
+  ],
+  "mukasaEdges": [
+    {
+      "id": "mk-1",
+      "from": "Sakrand Grain Store",
+      "to": "Al-Sindh Rice Mill",
+      "amountPkr": 450000,
+      "invoiceRef": "INV-SKR-101",
+      "cleared": false
+    },
+    {
+      "id": "mk-2",
+      "from": "Al-Sindh Rice Mill",
+      "to": "Indus Transport Co",
+      "amountPkr": 380000,
+      "invoiceRef": "INV-TRN-204",
+      "cleared": false
+    },
+    {
+      "id": "mk-3",
+      "from": "Indus Transport Co",
+      "to": "Sakrand Grain Store",
+      "amountPkr": 410000,
+      "invoiceRef": "INV-GRN-309",
+      "cleared": false
+    },
+    {
+      "id": "mk-4",
+      "from": "Nawabshah Cold Room",
+      "to": "Sakrand Grain Store",
+      "amountPkr": 195000,
+      "invoiceRef": "INV-CLD-412",
+      "cleared": false
+    }
+  ],
+  "lastMukasaReport": null,
+  "mukasaClearedTotalPkr": 1140000,
+  "maalGuard": [
+    {
+      "id": "mg-1",
+      "item": "Grade-A Sindhri Mangoes (Cold-Chain Lot)",
+      "location": "Sakrand Mandi Cold Room #2",
+      "originalPricePkr": 240000,
+      "rescuePricePkr": 168000,
+      "discountPct": 30,
+      "hoursRemaining": 9,
+      "quantityKg": 800,
+      "rescued": false
+    },
+    {
+      "id": "mg-2",
+      "item": "Fresh Whole-Wheat Chakki Flour Bags",
+      "location": "Qazi Ahmed Grain Depot",
+      "originalPricePkr": 185000,
+      "rescuePricePkr": 129500,
+      "discountPct": 30,
+      "hoursRemaining": 14,
+      "quantityKg": 1250,
+      "rescued": false
+    },
+    {
+      "id": "mg-3",
+      "item": "Chilled Buffalo Milk & Lassi Supply",
+      "location": "Sakrand Dairy Cooperative",
+      "originalPricePkr": 95000,
+      "rescuePricePkr": 66500,
+      "discountPct": 30,
+      "hoursRemaining": 6,
+      "quantityKg": 600,
+      "rescued": false
+    }
+  ],
+  "wages": [
+    {
+      "id": "wg-1",
+      "workerName": "Muhammad Ramzan Mallah",
+      "role": "Head Grain Sorter",
+      "raastId": "0301-8421901",
+      "amountPkr": 32000,
+      "feePkr": 0,
+      "sadaqahAttachedPkr": 1600,
+      "status": "settled",
+      "settledAt": "2026-11-13T16:40:00.000Z",
+      "txHash": "bb305e6c60098f940a9defe80d7cc1ab46f2d6bf5dc78dc593398b39963addfa"
+    },
+    {
+      "id": "wg-2",
+      "workerName": "Ghulam Mustafa Khaskheli",
+      "role": "Solar Panel Technician",
+      "raastId": "0304-9127730",
+      "amountPkr": 45000,
+      "feePkr": 0,
+      "sadaqahAttachedPkr": 2250,
+      "status": "pending",
+      "settledAt": null,
+      "txHash": null
+    },
+    {
+      "id": "wg-3",
+      "workerName": "Allah Bachayo Machi",
+      "role": "Cold-Chain Loader",
+      "raastId": "0333-2891044",
+      "amountPkr": 28000,
+      "feePkr": 0,
+      "sadaqahAttachedPkr": 1400,
+      "status": "pending",
+      "settledAt": null,
+      "txHash": null
+    }
+  ],
+  "recentIntentSeals": []
+}

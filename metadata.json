@@ -1,0 +1,6 @@
+{
+  "name": "BolMizan VERITAS-SOVEREIGN OS v20.0",
+  "description": "Sovereign AI Security Shields, Shariah-compliant Zero-Capital Trade & Hard-Asset Compounding OS headquartered in Sakrand, Sindh, Pakistan.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
