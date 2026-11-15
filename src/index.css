@@ -30,18 +30,27 @@
 }
 
 /* Lightweight static Ajrak canvas (Zero CPU/GPU frame thrashing) */
-.ajrak-canvas-bg {
+.ajrak-canvas-bg,
+.ajrak-dye-indigo {
   background-color: #030B10;
   background-image:
     radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.14) 0%, transparent 60%),
-    linear-gradient(135deg, #040F16 0%, #2B0814 45%, #07262B 100%);
+    linear-gradient(135deg, #040F16 0%, #240814 48%, #06252B 100%);
 }
 
-.ajrak-crimson-mode .ajrak-canvas-bg {
-  background-color: #12040A;
+.ajrak-crimson-mode .ajrak-canvas-bg,
+.ajrak-dye-crimson {
+  background-color: #13040A;
   background-image:
-    radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.18) 0%, transparent 60%),
-    linear-gradient(135deg, #260610 0%, #0A1826 48%, #3B0B18 100%);
+    radial-gradient(ellipse at 50% 0%, rgba(245, 158, 11, 0.2) 0%, transparent 62%),
+    linear-gradient(135deg, #2D0713 0%, #091824 50%, #3F0C1B 100%);
+}
+
+.ajrak-dye-kashi {
+  background-color: #041316;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(20, 184, 166, 0.18) 0%, transparent 62%),
+    linear-gradient(135deg, #052026 0%, #0A2E36 48%, #1C0D16 100%);
 }
 
 .imax-vignette {
@@ -58,7 +67,7 @@
   background: linear-gradient(90deg, transparent 5%, rgba(245, 158, 11, 0.85) 35%, #FDE68A 50%, rgba(20, 184, 166, 0.85) 65%, transparent 95%);
 }
 
-/* Fast solid-translucent glass without expensive backdrop-filter blur */
+/* Fast solid-translucent glass tuned to active Ajrak natural dye */
 .ajrak-moving-glass {
   background: linear-gradient(135deg, rgba(6, 22, 32, 0.96) 0%, rgba(36, 9, 19, 0.94) 50%, rgba(7, 34, 38, 0.96) 100%);
   border-color: rgba(245, 158, 11, 0.28);
@@ -66,10 +75,28 @@
   box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.7);
 }
 
+.ajrak-dye-crimson .ajrak-moving-glass {
+  background: linear-gradient(135deg, rgba(40, 8, 18, 0.96) 0%, rgba(11, 27, 36, 0.94) 52%, rgba(48, 10, 22, 0.96) 100%);
+  border-color: rgba(245, 158, 11, 0.36);
+}
+
+.ajrak-dye-kashi .ajrak-moving-glass {
+  background: linear-gradient(135deg, rgba(6, 30, 36, 0.96) 0%, rgba(8, 42, 48, 0.94) 52%, rgba(26, 11, 20, 0.95) 100%);
+  border-color: rgba(20, 184, 166, 0.36);
+}
+
 .ajrak-well {
   background-color: rgba(3, 12, 18, 0.94);
   border-color: rgba(245, 158, 11, 0.24);
   color: #F8F7F3;
+}
+
+.ajrak-dye-crimson .ajrak-well {
+  background-color: rgba(20, 5, 11, 0.92);
+}
+
+.ajrak-dye-kashi .ajrak-well {
+  background-color: rgba(4, 18, 22, 0.92);
 }
 
 .kashi-card {
@@ -89,16 +116,18 @@
   transform: translateY(-1px);
 }
 
+/* Authentic 5-hue Sindhi Ajrak Handloom Block-Print Border Rhythm */
 .ajrak-mosaic-band {
-  height: 4px;
+  height: 5px;
   width: 100%;
   background-image: repeating-linear-gradient(
     135deg,
-    #9B1C2E 0 8px,
-    #0D2327 8px 16px,
-    #F59E0B 16px 20px,
-    #0F766E 20px 28px,
-    #FDE68A 28px 32px
+    #9B1C2E 0 9px,
+    #061317 9px 14px,
+    #FAF5E8 14px 17px,
+    #0F766E 17px 26px,
+    #F59E0B 26px 30px,
+    #061317 30px 35px
   );
 }
 

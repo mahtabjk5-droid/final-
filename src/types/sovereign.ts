@@ -1,4 +1,15 @@
 export type AudienceMode = 'sabzi-wala' | 'enterprise';
+export type LocaleScript = 'en' | 'ur' | 'sd';
+export type AjrakDyeTheme = 'indigo' | 'crimson' | 'kashi';
+export type FXUnit = 'PKR' | 'USD' | 'SAR' | 'GOLD';
+
+export interface QuickCommandDraft {
+  id: number;
+  customer: string;
+  item: string;
+  amountPkr: number;
+  entryType: 'Udhaar (Credit)' | 'Wasooli (Paid)';
+}
 
 export interface PaymentRail {
   id: string;

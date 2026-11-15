@@ -275,7 +275,7 @@
       "id": "mk-1",
       "from": "Sakrand Grain Store",
       "to": "Al-Sindh Rice Mill",
-      "amountPkr": 450000,
+      "amountPkr": 70000,
       "invoiceRef": "INV-SKR-101",
       "cleared": false
     },
@@ -283,15 +283,15 @@
       "id": "mk-2",
       "from": "Al-Sindh Rice Mill",
       "to": "Indus Transport Co",
-      "amountPkr": 380000,
+      "amountPkr": 0,
       "invoiceRef": "INV-TRN-204",
-      "cleared": false
+      "cleared": true
     },
     {
       "id": "mk-3",
       "from": "Indus Transport Co",
       "to": "Sakrand Grain Store",
-      "amountPkr": 410000,
+      "amountPkr": 30000,
       "invoiceRef": "INV-GRN-309",
       "cleared": false
     },
@@ -304,8 +304,56 @@
       "cleared": false
     }
   ],
-  "lastMukasaReport": null,
-  "mukasaClearedTotalPkr": 1140000,
+  "lastMukasaReport": {
+    "cyclesDetected": 1,
+    "totalClearedPkr": 1140000,
+    "clearedLoops": [
+      {
+        "path": [
+          "Sakrand Grain Store",
+          "Al-Sindh Rice Mill",
+          "Indus Transport Co",
+          "Sakrand Grain Store"
+        ],
+        "clearedAmountPkr": 380000
+      }
+    ],
+    "remainingEdges": [
+      {
+        "id": "mk-1",
+        "from": "Sakrand Grain Store",
+        "to": "Al-Sindh Rice Mill",
+        "amountPkr": 70000,
+        "invoiceRef": "INV-SKR-101",
+        "cleared": false
+      },
+      {
+        "id": "mk-2",
+        "from": "Al-Sindh Rice Mill",
+        "to": "Indus Transport Co",
+        "amountPkr": 0,
+        "invoiceRef": "INV-TRN-204",
+        "cleared": true
+      },
+      {
+        "id": "mk-3",
+        "from": "Indus Transport Co",
+        "to": "Sakrand Grain Store",
+        "amountPkr": 30000,
+        "invoiceRef": "INV-GRN-309",
+        "cleared": false
+      },
+      {
+        "id": "mk-4",
+        "from": "Nawabshah Cold Room",
+        "to": "Sakrand Grain Store",
+        "amountPkr": 195000,
+        "invoiceRef": "INV-CLD-412",
+        "cleared": false
+      }
+    ]
+  },
+  "mukasaClearedTotalPkr": 2280000,
   "maalGuard": [
     {
       "id": "mg-1",
@@ -379,5 +427,39 @@
       "txHash": null
     }
   ],
-  "recentIntentSeals": []
+  "recentIntentSeals": [
+    {
+      "decision": "BLOCKED_SCAM",
+      "bayesianPosterior": 0.9759,
+      "shannonEntropy": 4.1,
+      "cadenceCV": 0.24,
+      "cadenceVarianceMs2": 960,
+      "latencyMs": 2,
+      "humanIntentSeal": null,
+      "triggers": [
+        "8171 / BISP impersonation bait",
+        "Sensitive credential / OTP harvesting attempt"
+      ],
+      "alertUrdu": "خبردار! مشکوک دھوکہ دہی یا او ٹی پی فراڈ پکڑا گیا ہے۔ کوئی رقم یا پن نہ بھیجیں۔",
+      "alertSindhi": "خبردار! شڪي دوکو يا او ٽي پي فراڊ پڪڙجي ويو آهي. ڪا به رقم يا پن نه موڪليو.",
+      "alertEnglish": "ALERT: Fraud, coercion, or robotic spoof intercepted. Outbound transfer halted.",
+      "timestamp": "2026-11-15T10:31:59.907Z"
+    },
+    {
+      "decision": "SUSPECT_BOT",
+      "bayesianPosterior": 0.525,
+      "shannonEntropy": 4.053,
+      "cadenceCV": 0,
+      "cadenceVarianceMs2": 0,
+      "latencyMs": 2,
+      "humanIntentSeal": null,
+      "triggers": [
+        "Robotic uniform keystroke cadence (CV=0)"
+      ],
+      "alertUrdu": "خبردار! مشکوک دھوکہ دہی یا او ٹی پی فراڈ پکڑا گیا ہے۔ کوئی رقم یا پن نہ بھیجیں۔",
+      "alertSindhi": "خبردار! شڪي دوکو يا او ٽي پي فراڊ پڪڙجي ويو آهي. ڪا به رقم يا پن نه موڪليو.",
+      "alertEnglish": "ALERT: Fraud, coercion, or robotic spoof intercepted. Outbound transfer halted.",
+      "timestamp": "2026-11-15T09:58:25.588Z"
+    }
+  ]
 }

@@ -1,405 +1,352 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Check, Copy, Mic, MicOff, MessageSquare, Sparkles } from 'lucide-react';
-import { AjrakAudioWaveform } from './AjrakAudioWaveform';
-import { ChromaticKashiRule } from './SovereignArt';
+import React, { useRef, useState } from 'react';
+import { Mic, ReceiptText, ShieldCheck, Sparkles, Square, Volume2 } from 'lucide-react';
+import type { QuickCommandDraft, VoiceExtractionResult } from '../types/sovereign';
+import { triggerApexHaptic } from '../utils/haptics';
+import { ApexHapticControlCard } from './ApexHapticControlCard';
+import {
+  AjrakClothPattern,
+  AjrakLoomDivider,
+  ChromaticKashiRule,
+  HalaKashiCornerOrnament,
+} from './SovereignArt';
 import { VoiceBiometricChallenge } from './VoiceBiometricChallenge';
-import { triggerSovereignHaptic } from '../utils/haptics';
-import type { VoiceExtractionResult } from '../types/sovereign';
 
-const SAMPLE_NOTES = [
-  { label: 'Urdu (اردو)', text: 'سکرنڈ رائس مل سے 25 ٹن باسمتی چاول ریاض برآمد، کل رقم 45 لاکھ روپے، مزدوروں کو فوری راس ادائیگی۔' },
-  { label: 'Sindhi (سنڌي)', text: 'خيرپور مان 15 لک رپين جي اصيل کجور دبئي موڪلڻ لاءِ مضاربت معاهدو، ٻه شاهد موجود.' },
-  { label: 'Arabic (العربية)', text: 'توريد ٢٠ طن أرز بسمتي من سكرند إلى الرياض بمبلغ ١٥٠ ألف ريال مرابحة بدون ربا.' },
-  { label: 'English', text: 'Sakrand solar micro-grid 22% Mudarabah syndicate deal PKR 9,600,000 with Haq-e-Mazdoor priority.' },
+const LANGUAGE_PRESETS: Array<{ label: string; sample: string }> = [
+  {
+    label: 'Urdu اردو',
+    sample: 'عمر فاروق کو 45000 روپے سکرنڈ باسمتی چاول ادھار دیے 0% سود',
+  },
+  {
+    label: 'Sindhi سنڌي',
+    sample: 'حاجي بلال کان 28500 رپيا کھجور وڪرو نقد وصول ڪيا سکرنڊ',
+  },
+  {
+    label: 'Arabic العربية',
+    sample: 'شراء 320000 روبية تمر خيربور تصدير جدة مرابحة حلال بدون فائدة',
+  },
+  {
+    label: 'English',
+    sample: 'Muhammad Ali ko 14500 PKR Sakrand Basmati Rice udhaar diya Murabaha 0% Riba',
+  },
 ];
 
-export const VoiceMizanWorkspace: React.FC = () => {
-  const [voiceText, setVoiceText] = useState(SAMPLE_NOTES[0].text);
-  const [extractLoading, setExtractLoading] = useState(false);
-  const [extraction, setExtraction] = useState<VoiceExtractionResult | null>(null);
+function speakUrdu(text: string) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ur-PK';
+  window.speechSynthesis.speak(utter);
+}
+
+interface VoiceMizanWorkspaceProps {
+  onSendToParchi?: (draft: Omit<QuickCommandDraft, 'id'>) => void;
+}
+
+export const VoiceMizanWorkspace: React.FC<VoiceMizanWorkspaceProps> = ({
+  onSendToParchi,
+}) => {
+  const [voiceNote, setVoiceNote] = useState(LANGUAGE_PRESETS[3].sample);
+  const [voiceBusy, setVoiceBusy] = useState(false);
+  const [voiceResult, setVoiceResult] = useState<VoiceExtractionResult | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [activeMicStream, setActiveMicStream] = useState<MediaStream | null>(null);
-  const [recordingError, setRecordingError] = useState<string | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const activeMicStreamRef = useRef<MediaStream | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const [micError, setMicError] = useState<string | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
 
-  activeMicStreamRef.current = activeMicStream;
-
-  useEffect(() => {
-    return () => {
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
-      activeMicStreamRef.current?.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
-
-  const [advisorQuestion, setAdvisorQuestion] = useState(
-    'How do we structure a 22% Mudarabah solar micro-grid syndicate in Sakrand compliant with Quran 2:282 and ETO-2002?',
+  const [advisorQ, setAdvisorQ] = useState(
+    'How should Sakrand farmers structure a 25-ton Riyadh rice export under Murabaha without Riba?',
   );
-  const [advisorLang, setAdvisorLang] = useState('English');
-  const [advisorLoading, setAdvisorLoading] = useState(false);
-  const [advisorError, setAdvisorError] = useState<string | null>(null);
-  const [extractError, setExtractError] = useState<string | null>(null);
-  const [copiedJson, setCopiedJson] = useState(false);
-  const [advisorResult, setAdvisorResult] = useState<{
+  const [advisorBusy, setAdvisorBusy] = useState(false);
+  const [advisorAns, setAdvisorAns] = useState<{
     engine: string;
     answer: string;
     references: string[];
   } | null>(null);
 
-  const handleExtractText = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!voiceText.trim()) return;
-    setExtractLoading(true);
-    setExtractError(null);
+  const runExtract = async (payload: { text?: string; audioBase64?: string; mimeType?: string }) => {
+    setVoiceBusy(true);
+    setMicError(null);
     try {
       const res = await fetch('/api/ai/extract-voice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: voiceText }),
+        body: JSON.stringify(payload),
       });
-      const data = (await res.json()) as VoiceExtractionResult & { error?: string };
-      if (!res.ok) {
-        throw new Error(data.error || `Extraction failed (HTTP ${res.status})`);
+      if (res.ok) {
+        const data = (await res.json()) as VoiceExtractionResult;
+        setVoiceResult(data);
+        triggerApexHaptic('seal_minted', 'Voice-to-Hisab Extracted');
       }
-      setExtraction(data);
-      triggerSovereignHaptic('authenticate');
-    } catch (err) {
-      triggerSovereignHaptic('error');
-      setExtractError(err instanceof Error ? err.message : 'Unable to extract deal metadata.');
     } finally {
-      setExtractLoading(false);
+      setVoiceBusy(false);
     }
   };
 
-  const toggleRecording = async () => {
-    setRecordingError(null);
-    if (isRecording && mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
+  const toggleMic = async () => {
+    setMicError(null);
+    if (isRecording && recorderRef.current) {
+      recorderRef.current.stop();
       setIsRecording(false);
       return;
     }
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setRecordingError('Microphone recording is unavailable in this browser context; use text extraction below.');
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      setMicError('Microphone unavailable in this browser. Select a language preset or type your note below.');
       return;
     }
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setActiveMicStream(stream);
-      const recorder = new MediaRecorder(stream);
+      const rec = new MediaRecorder(stream);
       chunksRef.current = [];
-      recorder.ondataavailable = (ev) => {
+      rec.ondataavailable = (ev) => {
         if (ev.data.size > 0) chunksRef.current.push(ev.data);
       };
-      recorder.onstop = async () => {
+      rec.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
-        setActiveMicStream(null);
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
         const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64 = String(reader.result || '').split(',')[1] || '';
-          setExtractLoading(true);
-          setExtractError(null);
-          try {
-            const res = await fetch('/api/ai/extract-voice', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                audioBase64: base64,
-                mimeType: blob.type || 'audio/webm',
-                text: voiceText,
-              }),
-            });
-            const data = (await res.json()) as VoiceExtractionResult & { error?: string };
-            if (!res.ok) {
-              throw new Error(data.error || `Audio extraction failed (HTTP ${res.status})`);
-            }
-            setExtraction(data);
-            triggerSovereignHaptic('authenticate');
-          } catch (err) {
-            triggerSovereignHaptic('error');
-            setExtractError(err instanceof Error ? err.message : 'Audio extraction failed.');
-          } finally {
-            setExtractLoading(false);
-          }
+        reader.onloadend = () => {
+          const str = String(reader.result || '');
+          const base64 = str.includes(',') ? str.split(',')[1] : str;
+          void runExtract({ audioBase64: base64, mimeType: blob.type || 'audio/webm', text: voiceNote });
         };
         reader.readAsDataURL(blob);
       };
-      mediaRecorderRef.current = recorder;
-      recorder.start();
-      triggerSovereignHaptic('tap');
+      recorderRef.current = rec;
+      rec.start();
       setIsRecording(true);
     } catch {
-      triggerSovereignHaptic('error');
-      setActiveMicStream(null);
-      setRecordingError('Microphone permission denied or unavailable; paste Urdu/Sindhi/Arabic/English text instead.');
+      setMicError('Microphone access denied. Select a language preset or type your note below.');
     }
   };
 
   const handleAskAdvisor = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!advisorQuestion.trim()) return;
-    setAdvisorLoading(true);
-    setAdvisorError(null);
+    if (!advisorQ.trim()) return;
+    setAdvisorBusy(true);
     try {
       const res = await fetch('/api/ai/mizan-advisor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: advisorQuestion, language: advisorLang }),
+        body: JSON.stringify({ question: advisorQ, language: 'Urdu & English' }),
       });
-      const data = (await res.json()) as {
-        engine: string;
-        answer: string;
-        references: string[];
-        error?: string;
-      };
-      if (!res.ok) {
-        throw new Error(data.error || `Advisor unavailable (HTTP ${res.status})`);
+      if (res.ok) {
+        const data = await res.json();
+        setAdvisorAns(data);
+        triggerApexHaptic('sync_steady', 'Mizan-Advisor Guidance');
       }
-      setAdvisorResult(data);
-      triggerSovereignHaptic('authenticate');
-    } catch (err) {
-      triggerSovereignHaptic('error');
-      setAdvisorError(err instanceof Error ? err.message : 'Unable to reach Mizan-Advisor.');
     } finally {
-      setAdvisorLoading(false);
+      setAdvisorBusy(false);
     }
   };
 
-  const handleCopyExtractionJson = async () => {
-    if (!extraction) return;
-    triggerSovereignHaptic('tap');
-    await navigator.clipboard.writeText(JSON.stringify(extraction, null, 2));
-    setCopiedJson(true);
-    window.setTimeout(() => setCopiedJson(false), 1800);
-  };
-
-  const handleConsultAdvisorFromExtraction = () => {
-    if (!extraction) return;
-    triggerSovereignHaptic('tap');
-    const amountNote = extraction.amountPkr
-      ? `PKR ${extraction.amountPkr.toLocaleString('en-US')}`
-      : 'unspecified PKR value';
-    const qtyNote =
-      extraction.quantity !== null ? `${extraction.quantity} ${extraction.unit}` : 'lot';
-    setAdvisorQuestion(
-      `Review this extracted ${extraction.transactionType} deal for Shariah (Quran 2:282 & AAOIFI) and Pakistan ETO-2002 compliance: ${qtyNote} of ${extraction.commodity} with ${extraction.partyName} valued at ${amountNote}. Check for Riba/Gharar clauses and Haq-e-Mazdoor priorities.`,
-    );
-  };
-
   return (
-    <div className="space-y-6">
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-      {/* Multimodal Audio & UTF-8 Extraction */}
-      <section className="kashi-card rounded-xl overflow-hidden border border-[#0D2327]/12 dark:border-[#F8F7F3]/15 ajrak-moving-glass border-[#F59E0B]/25">
+    <div className="space-y-8">
+      <section className="relative kashi-card rounded-xl overflow-hidden border border-[#14B8A6]/35 ajrak-moving-glass">
         <ChromaticKashiRule />
-        <div className="p-6 space-y-5">
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-[#9B1C2E] dark:text-[#F59E0B]">
-            Gemini 2.5 Flash Multimodal + UTF-8 Offline Regex Fallback
-          </p>
-          <h2 className="font-display text-xl font-bold text-[#0D2327] dark:text-[#F8F7F3]">
-            Urdu, Sindhi, Arabic & English Voice Ledger Extractor
-          </h2>
-        </div>
+        <AjrakClothPattern accentHex="#14B8A6" opacityClass="opacity-[0.085]" />
+        <HalaKashiCornerOrnament className="absolute top-3 right-3 rotate-90 opacity-50" />
+        <div className="relative z-10 p-6 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium text-[#5EEAD4]">
+                Gemini 2.5 Flash Audio &amp; UTF-8 Fallback · Urdu / Sindhi / Arabic / English
+              </p>
+              <h2 className="font-display text-2xl font-bold text-white">
+                Multilingual Voice-to-Hisab Ledger Parser
+              </h2>
+            </div>
 
-        <div className="flex flex-wrap gap-2">
-          {SAMPLE_NOTES.map((sample) => (
-            <button
-              key={sample.label}
-              type="button"
-              onClick={() => setVoiceText(sample.text)}
-              className="px-3 py-1.5 rounded-md border border-[#0D2327]/15 dark:border-[#F8F7F3]/20 text-xs font-medium hover:bg-[#0D2327]/5 dark:hover:bg-white/5 whitespace-nowrap shrink-0"
-            >
-              {sample.label}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={(e) => void handleExtractText(e)} className="space-y-4">
-          <textarea
-            rows={4}
-            dir="auto"
-            value={voiceText}
-            onChange={(e) => setVoiceText(e.target.value)}
-            className="w-full rounded-lg border border-[#0D2327]/20 dark:border-[#F8F7F3]/20 ajrak-well text-[#F8F7F3] px-3.5 py-2.5 text-sm leading-relaxed"
-          />
-
-          {recordingError && (
-            <p className="text-xs text-[#9B1C2E] dark:text-rose-400">{recordingError}</p>
-          )}
-
-          <AjrakAudioWaveform stream={activeMicStream} isRecording={isRecording} />
-
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="submit"
-              disabled={extractLoading}
-              className="kashi-btn px-4 py-2.5 rounded-lg bg-[#0D2327] dark:bg-[#F59E0B] text-white dark:text-[#0D2327] text-xs font-semibold whitespace-nowrap shrink-0 min-h-[40px]"
-            >
-              {extractLoading ? 'Extracting...' : 'Extract Deal Metadata'}
-            </button>
             <button
               type="button"
-              onClick={() => void toggleRecording()}
-              className={`kashi-btn inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 min-h-[40px] ${
-                isRecording
-                  ? 'bg-[#9B1C2E] text-white'
-                  : 'border border-[#0D2327]/20 dark:border-[#F8F7F3]/20 text-[#0D2327] dark:text-[#F8F7F3]'
+              onClick={() => void toggleMic()}
+              className={`kashi-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold ${
+                isRecording ? 'bg-rose-600 text-white' : 'bg-[#0F766E] text-white'
               }`}
             >
-              {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              {isRecording ? 'Stop & Extract Audio' : 'Record Voice Note'}
+              {isRecording ? <Square className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              <span>{isRecording ? 'Stop & Extract Audio' : 'Record Voice Note'}</span>
             </button>
           </div>
-        </form>
 
-        {extractError && (
-          <div
-            role="alert"
-            className="rounded-lg border border-rose-500/45 bg-rose-950/60 px-3.5 py-2 text-xs text-rose-200"
-          >
-            {extractError}
-          </div>
-        )}
-
-        {extraction && (
-          <div className="rounded-lg border border-[#0D2327]/12 dark:border-[#F8F7F3]/12 ajrak-well text-[#F8F7F3] p-4 space-y-2.5 text-xs">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-bold text-sm text-[#0D2327] dark:text-[#F8F7F3]">
-                {extraction.transactionType} · {extraction.commodity}
-              </span>
-              <span className="font-mono-tabular text-[#9B1C2E] dark:text-[#F59E0B] font-semibold">
-                {extraction.engine} · {extraction.languageDetected}
-              </span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
-              <div>
-                <p className="text-[#0D2327]/60 dark:text-[#F8F7F3]/60">Counterparty</p>
-                <p className="font-semibold">{extraction.partyName}</p>
-              </div>
-              <div>
-                <p className="text-[#0D2327]/60 dark:text-[#F8F7F3]/60">Quantity</p>
-                <p className="font-mono-tabular font-semibold">
-                  {extraction.quantity ?? '—'} {extraction.unit}
-                </p>
-              </div>
-              <div>
-                <p className="text-[#0D2327]/60 dark:text-[#F8F7F3]/60">Amount (PKR)</p>
-                <p className="font-mono-tabular font-semibold">
-                  {extraction.amountPkr ? `PKR ${extraction.amountPkr.toLocaleString('en-US')}` : '—'}
-                </p>
-              </div>
-            </div>
-            <p className="text-[#0D2327]/80 dark:text-[#F8F7F3]/80">{extraction.summary}</p>
-            {extraction.ribaFlags.length > 0 && (
-              <p className="text-[#9B1C2E] dark:text-rose-400 font-semibold">
-                {extraction.ribaFlags.join(' · ')}
-              </p>
-            )}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#F8F7F3]/10">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-[#F8F7F3]/65 font-medium">Quick Language Sample:</span>
+            {LANGUAGE_PRESETS.map((preset) => (
               <button
+                key={preset.label}
                 type="button"
-                onClick={() => void handleCopyExtractionJson()}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-[#F59E0B]/30 text-[11px] font-semibold text-[#FDE68A] hover:bg-white/5"
+                onClick={() => {
+                  setVoiceNote(preset.sample);
+                  void runExtract({ text: preset.sample });
+                }}
+                className="px-2.5 py-1 rounded border border-[#14B8A6]/30 bg-[#04141A] text-[#5EEAD4] hover:border-[#F59E0B]/50 hover:text-[#FDE68A] transition-colors"
               >
-                {copiedJson ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                {copiedJson ? 'Copied JSON' : 'Copy JSON'}
+                {preset.label}
               </button>
-              <button
-                type="button"
-                onClick={handleConsultAdvisorFromExtraction}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[#0F766E]/80 text-white text-[11px] font-semibold hover:bg-[#0F766E]"
-              >
-                <Sparkles className="w-3 h-3" />
-                Consult Advisor About This Deal
-              </button>
-            </div>
+            ))}
           </div>
-        )}
-        </div>
-      </section>
 
-      {/* Mizan-Advisor Shariah & Trade Counsel */}
-      <section className="kashi-card rounded-xl overflow-hidden border border-[#0D2327]/12 dark:border-[#F8F7F3]/15 ajrak-moving-glass border-[#F59E0B]/25">
-        <ChromaticKashiRule />
-        <div className="p-6 space-y-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-[#0D2327]/60 dark:text-[#F8F7F3]/60">
-              Quran 2:282 · AAOIFI · Pakistan ETO-2002
+          {micError && (
+            <p className="rounded-lg border border-amber-500/35 bg-amber-950/40 px-3 py-2 text-xs text-amber-200">
+              {micError}
             </p>
-            <h2 className="font-display text-xl font-bold text-[#0D2327] dark:text-[#F8F7F3]">
-              Mizan-Advisor Shariah & Export Counsel
-            </h2>
-          </div>
-          <MessageSquare className="w-5 h-5 text-[#9B1C2E] dark:text-[#F59E0B] shrink-0" />
-        </div>
-
-        <form onSubmit={(e) => void handleAskAdvisor(e)} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium mb-1">Response Language</label>
-            <select
-              value={advisorLang}
-              onChange={(e) => setAdvisorLang(e.target.value)}
-              className="w-full rounded-lg border border-[#0D2327]/20 dark:border-[#F8F7F3]/20 ajrak-well text-[#F8F7F3] px-3 py-2 text-sm"
-            >
-              <option value="English">English</option>
-              <option value="Urdu">Urdu (اردو)</option>
-              <option value="Sindhi">Sindhi (سنڌي)</option>
-              <option value="Arabic">Arabic (العربية)</option>
-            </select>
-          </div>
+          )}
 
           <textarea
-            rows={4}
-            value={advisorQuestion}
-            onChange={(e) => setAdvisorQuestion(e.target.value)}
-            className="w-full rounded-lg border border-[#0D2327]/20 dark:border-[#F8F7F3]/20 ajrak-well text-[#F8F7F3] px-3.5 py-2.5 text-sm"
+            rows={3}
+            value={voiceNote}
+            onChange={(e) => setVoiceNote(e.target.value)}
+            className="w-full rounded-xl border border-[#14B8A6]/30 ajrak-well p-3.5 text-sm text-white"
           />
 
-          <button
-            type="submit"
-            disabled={advisorLoading}
-            className="kashi-btn inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#9B1C2E] text-white text-xs font-semibold hover:bg-[#7F1524] whitespace-nowrap shrink-0 min-h-[40px]"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            {advisorLoading ? 'Consulting Mizan-Advisor...' : 'Ask Mizan-Advisor'}
-          </button>
-        </form>
-
-        {advisorError && (
-          <div
-            role="alert"
-            className="rounded-lg border border-rose-500/45 bg-rose-950/60 px-3.5 py-2 text-xs text-rose-200"
-          >
-            {advisorError}
+          <div className="flex flex-wrap gap-2.5">
+            <button
+              type="button"
+              disabled={voiceBusy}
+              onClick={() => void runExtract({ text: voiceNote })}
+              className="kashi-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#F59E0B] text-[#05131B] text-xs font-bold"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{voiceBusy ? 'Extracting...' : 'Extract Structured Hisab'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => speakUrdu(voiceNote)}
+              className="kashi-btn inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-[#F59E0B]/40 text-[#FDE68A] text-xs font-semibold"
+            >
+              <Volume2 className="w-3.5 h-3.5" />
+              <span>Speak Urdu TTS</span>
+            </button>
           </div>
-        )}
 
-        {advisorResult && (
-          <div className="rounded-lg border border-[#0D2327]/12 dark:border-[#F8F7F3]/12 ajrak-well text-[#F8F7F3] p-4 space-y-3 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-sm">Mizan-Advisor Guidance</span>
-              <span className="font-mono-tabular text-[#9B1C2E] dark:text-[#F59E0B]">{advisorResult.engine}</span>
+          {voiceResult && (
+            <div className="rounded-xl border border-emerald-500/35 ajrak-well p-4 space-y-3 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 font-bold text-emerald-300">
+                <span>{voiceResult.summary}</span>
+                <span className="font-mono-tabular text-[11px] text-[#5EEAD4]">
+                  {voiceResult.engine} · {voiceResult.languageDetected}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                <div className="rounded-lg border border-[#14B8A6]/20 bg-[#04141A] p-2.5">
+                  <div className="text-[10px] text-[#5EEAD4]">Party</div>
+                  <div className="font-bold text-white truncate">{voiceResult.partyName}</div>
+                </div>
+                <div className="rounded-lg border border-[#14B8A6]/20 bg-[#04141A] p-2.5">
+                  <div className="text-[10px] text-[#5EEAD4]">Amount PKR</div>
+                  <div className="font-mono-tabular font-bold text-[#FDE68A]">
+                    {voiceResult.amountPkr !== null
+                      ? `PKR ${voiceResult.amountPkr.toLocaleString('en-US')}`
+                      : 'N/A'}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-[#14B8A6]/20 bg-[#04141A] p-2.5">
+                  <div className="text-[10px] text-[#5EEAD4]">Contract Type</div>
+                  <div className="font-mono-tabular font-semibold text-white">
+                    {voiceResult.transactionType}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-[#14B8A6]/20 bg-[#04141A] p-2.5">
+                  <div className="text-[10px] text-[#5EEAD4]">Commodity</div>
+                  <div className="font-semibold text-white truncate">{voiceResult.commodity}</div>
+                </div>
+                <div className="rounded-lg border border-[#14B8A6]/20 bg-[#04141A] p-2.5">
+                  <div className="text-[10px] text-[#5EEAD4]">Riba Audit</div>
+                  <div
+                    className={`inline-flex items-center gap-1 font-semibold ${
+                      voiceResult.ribaFlags.length === 0 ? 'text-emerald-300' : 'text-rose-300'
+                    }`}
+                  >
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>
+                      {voiceResult.ribaFlags.length === 0
+                        ? '0% Riba Clean'
+                        : `${voiceResult.ribaFlags.length} Flag(s)`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <span className="text-[11px] text-[#F8F7F3]/65">
+                  Send this parsed record straight into a printable Raast Parchi &amp; WhatsApp slip:
+                </span>
+                {onSendToParchi && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSendToParchi({
+                        customer: voiceResult.partyName || 'Walk-in Buyer',
+                        item: voiceResult.commodity || voiceNote.slice(0, 40),
+                        amountPkr: voiceResult.amountPkr ?? 14500,
+                        entryType:
+                          voiceResult.transactionType === 'Murabaha' ||
+                          voiceResult.rawText.toLowerCase().includes('udhaar')
+                            ? 'Udhaar (Credit)'
+                            : 'Wasooli (Paid)',
+                      });
+                    }}
+                    className="kashi-btn inline-flex items-center gap-1.5 rounded-lg bg-[#0F766E] hover:bg-[#14B8A6] px-3.5 py-2 text-xs font-bold text-white"
+                  >
+                    <ReceiptText className="w-3.5 h-3.5" />
+                    <span>Stamp in Live Parchi</span>
+                  </button>
+                )}
+              </div>
+
+              <pre className="overflow-x-auto rounded-lg bg-[#030B10] p-3 font-mono-tabular text-[11px] text-slate-200">
+                {JSON.stringify(voiceResult, null, 2)}
+              </pre>
             </div>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap text-[#0D2327]/90 dark:text-[#F8F7F3]/90">
-              {advisorResult.answer}
-            </p>
-            <p className="text-[#0D2327]/65 dark:text-[#F8F7F3]/65">
-              Sources: {advisorResult.references.join(' · ')}
-            </p>
-          </div>
-        )}
+          )}
         </div>
       </section>
-    </div>
 
-    <VoiceBiometricChallenge />
+      <AjrakLoomDivider label="Mizan-Advisor & Biometric Identity" />
+
+      <section className="relative kashi-card rounded-xl overflow-hidden border border-[#F59E0B]/30 ajrak-moving-glass">
+        <ChromaticKashiRule />
+        <AjrakClothPattern accentHex="#F59E0B" opacityClass="opacity-[0.08]" />
+        <div className="relative z-10 p-6 space-y-4">
+          <div>
+            <p className="text-xs font-medium text-[#F59E0B]">
+              Quran 2:282 · Pakistan ETO-2002 · AAOIFI Shariah Advisory
+            </p>
+            <h3 className="font-display text-xl font-bold text-white">
+              Mizan-Advisor Shariah &amp; Export Consultant
+            </h3>
+          </div>
+
+          <form onSubmit={(e) => void handleAskAdvisor(e)} className="flex flex-col sm:flex-row gap-2.5">
+            <input
+              type="text"
+              value={advisorQ}
+              onChange={(e) => setAdvisorQ(e.target.value)}
+              className="flex-1 rounded-lg border border-[#F59E0B]/30 ajrak-well px-3.5 py-2.5 text-xs text-white"
+            />
+            <button
+              type="submit"
+              disabled={advisorBusy}
+              className="kashi-btn rounded-lg bg-[#0F766E] px-4 py-2.5 text-xs font-bold text-white"
+            >
+              {advisorBusy ? 'Consulting...' : 'Ask Mizan-Advisor'}
+            </button>
+          </form>
+
+          {advisorAns && (
+            <div className="rounded-xl border border-[#F59E0B]/25 ajrak-well p-4 space-y-2 text-xs">
+              <p className="text-[#F8F7F3] leading-relaxed">{advisorAns.answer}</p>
+              <p className="font-mono-tabular text-[11px] text-[#5EEAD4]">
+                References: {advisorAns.references.join(' · ')} ({advisorAns.engine})
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <VoiceBiometricChallenge />
+
+      <ApexHapticControlCard />
     </div>
   );
 };

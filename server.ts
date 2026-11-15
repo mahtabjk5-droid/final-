@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import crypto from 'node:crypto';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,7 +11,11 @@ import {
   sendRealWhatsappMessage,
   verifyJazzCashReturnHash,
 } from './server/realGateways.ts';
-import { verifyIntentCognitiveFirewall } from './server/sovereignEngine.ts';
+import {
+  runTruthFilter,
+  sovereignStore,
+  verifyIntentCognitiveFirewall,
+} from './server/sovereignEngine.ts';
 import { askMizanAdvisor, extractMultilingualVoiceOrText } from './server/voiceAndAi.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +28,7 @@ async function startProductionServer() {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
+      frameguard: false,
     }),
   );
   app.use(express.json({ limit: '8mb' }));
@@ -172,8 +176,9 @@ async function startProductionServer() {
       keystrokeIntervalsMs: Array.isArray(req.body?.keystrokeIntervalsMs)
         ? req.body.keystrokeIntervalsMs
         : [],
-      actionContext: 'shopkeeper_scam_shield',
+      actionContext: String(req.body?.actionContext || 'shopkeeper_scam_shield'),
     });
+    sovereignStore.recordIntentResult(result);
     res.json(result);
   });
 
@@ -201,6 +206,163 @@ async function startProductionServer() {
     res.json(result);
   });
 
+  // 8. BolMizan VERITAS-SOVEREIGN OS v30.0 Full Sovereign State & Treasury Endpoints
+  app.get('/api/sovereign/state', (_req, res) => {
+    res.json(sovereignStore.getState());
+  });
+
+  app.post('/api/sovereign/kill-switch', (req, res) => {
+    const pin = String(req.body?.pin || '');
+    const action = req.body?.action === 'restore' ? 'restore' : 'freeze';
+    const result = sovereignStore.toggleKillSwitch({ pin, action });
+    if (!result.ok) {
+      res.status(401).json(result);
+      return;
+    }
+    res.json(result);
+  });
+
+  app.post('/api/sovereign/truth-filter', (req, res) => {
+    const content = String(req.body?.content || '').trim();
+    if (!content) {
+      res.status(400).json({ error: 'Document content or claim is required.' });
+      return;
+    }
+    const docType =
+      req.body?.documentType === 'digital-invoice' || req.body?.documentType === 'media-claim'
+        ? req.body.documentType
+        : 'whatsapp-forward';
+    const result = runTruthFilter({
+      content,
+      documentType: docType,
+      declaredHash: req.body?.declaredHash ? String(req.body.declaredHash) : undefined,
+      claimedTotal:
+        typeof req.body?.claimedTotal === 'number' ? req.body.claimedTotal : undefined,
+      lineItems: Array.isArray(req.body?.lineItems) ? req.body.lineItems : undefined,
+    });
+    res.json(result);
+  });
+
+  app.post('/api/sovereign/deals', (req, res) => {
+    const body = req.body ?? {};
+    if (!body.title || !body.commodity || !Number(body.dealValuePkr)) {
+      res.status(400).json({ error: 'Deal title, commodity, and positive PKR value required.' });
+      return;
+    }
+    const dealValuePkr = Math.max(1000, Math.round(Number(body.dealValuePkr)));
+    const deal = sovereignStore.createDeal({
+      title: String(body.title),
+      sector: body.sector === 'sector-2-solar-energy' ? 'sector-2-solar-energy' : 'sector-1-food-water',
+      commodity: String(body.commodity),
+      originCity: String(body.originCity || 'Sakrand, Sindh'),
+      destinationCity: String(body.destinationCity || 'Riyadh, Saudi Arabia'),
+      supplierName: String(body.supplierName || 'Sakrand Producers Syndicate'),
+      buyerName: String(body.buyerName || 'Gulf Halal Foods LLC'),
+      dealValuePkr,
+      dealValueUsd: Math.round(dealValuePkr / 278),
+      ujrahMarginPct: Number(body.ujrahMarginPct ?? 6.5),
+      mudarabahEquitySharePct: Number(body.mudarabahEquitySharePct ?? 0),
+      syndicateMembers: Math.max(1, Number(body.syndicateMembers ?? 1)),
+      khufiyaSadaqahPct: Math.max(5, Math.min(10, Number(body.khufiyaSadaqahPct ?? 7))),
+      niyatChecklist: {
+        halalOrigin: true,
+        zeroRiba: true,
+        zeroDeception: true,
+        haqEMazdoorPriority: true,
+      },
+      defectDisclosure: String(
+        body.defectDisclosure || '0.8% natural transit variance disclosed upfront per Siddiq (RA) protocol.',
+      ),
+      warehouseProof: {
+        videoFileRef: String(body.videoFileRef || 'sakrand_warehouse_gps_live.mp4'),
+        gpsCoords: String(body.gpsCoords || '26.1384° N, 68.2747° E (Sakrand)'),
+        capturedAt: new Date().toISOString(),
+        verified: true,
+      },
+    });
+    res.status(201).json({ deal, state: sovereignStore.getState() });
+  });
+
+  app.post('/api/sovereign/deals/:id/attest', (req, res) => {
+    const witness1 = String(req.body?.witness1 || '').trim();
+    const witness2 = String(req.body?.witness2 || '').trim();
+    if (!witness1 || !witness2) {
+      res.status(400).json({ error: 'Two Otaq Majlis witnesses are required per Quran 2:282.' });
+      return;
+    }
+    const deal = sovereignStore.attestDeal(req.params.id, witness1, witness2);
+    if (!deal) {
+      res.status(404).json({ error: 'Deal not found.' });
+      return;
+    }
+    res.json({ deal, state: sovereignStore.getState() });
+  });
+
+  app.post('/api/sovereign/mukasa/add', (req, res) => {
+    const { from, to, amountPkr, invoiceRef } = req.body ?? {};
+    if (!from || !to || !Number(amountPkr)) {
+      res.status(400).json({ error: 'Debtor, creditor, and amountPkr are required.' });
+      return;
+    }
+    const edge = sovereignStore.addMukasaEdge(
+      String(from),
+      String(to),
+      Number(amountPkr),
+      String(invoiceRef || ''),
+    );
+    res.status(201).json({ edge, state: sovereignStore.getState() });
+  });
+
+  app.post('/api/sovereign/mukasa/clear', (_req, res) => {
+    const report = sovereignStore.clearMukasa();
+    res.json({ report, state: sovereignStore.getState() });
+  });
+
+  app.post('/api/sovereign/wages/add', (req, res) => {
+    const { workerName, role, raastId, amountPkr, sadaqahPct } = req.body ?? {};
+    if (!workerName || !raastId || !Number(amountPkr)) {
+      res.status(400).json({ error: 'Worker name, Raast ID, and wage amount required.' });
+      return;
+    }
+    const payout = sovereignStore.addWage(
+      String(workerName),
+      String(role || 'Mill Worker'),
+      String(raastId),
+      Number(amountPkr),
+      Number(sadaqahPct ?? 5),
+    );
+    res.status(201).json({ payout, state: sovereignStore.getState() });
+  });
+
+  app.post('/api/sovereign/wages/:id/settle', (req, res) => {
+    const result = sovereignStore.settleWage(req.params.id);
+    if (!result.ok) {
+      res.status(400).json(result);
+      return;
+    }
+    res.json({ ...result, state: sovereignStore.getState() });
+  });
+
+  app.post('/api/sovereign/maal-guard/:id/rescue', (req, res) => {
+    const rescuedBy = String(req.body?.rescuedBy || 'Sakrand Bulk Syndicate');
+    const result = sovereignStore.rescueMaalGuard(req.params.id, rescuedBy);
+    if (!result.ok) {
+      res.status(400).json(result);
+      return;
+    }
+    res.json({ ...result, state: sovereignStore.getState() });
+  });
+
+  app.post('/api/sovereign/reset', (req, res) => {
+    const pin = String(req.body?.pin || '');
+    const result = sovereignStore.resetDemoState(pin);
+    if (!result.ok) {
+      res.status(401).json(result);
+      return;
+    }
+    res.json(result);
+  });
+
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
@@ -216,10 +378,13 @@ async function startProductionServer() {
     });
   }
 
-  const port = Number(process.env.PORT) || 3000;
+  const port =
+    process.env.NODE_ENV === 'production'
+      ? Number(process.env.PORT) || 3000
+      : Number(process.env.DEFAULT_APP_PORT) || 3000;
   const server = http.createServer(app);
   server.listen(port, '0.0.0.0', () => {
-    console.log(`BolMizan Production Khata OS listening on http://0.0.0:${port}`);
+    console.log(`BolMizan Production Khata OS listening on http://0.0.0.0:${port}`);
   });
 }
 

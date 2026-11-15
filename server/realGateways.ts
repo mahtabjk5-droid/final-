@@ -17,7 +17,7 @@ export async function sendRealWhatsappMessage(params: {
 
   if (token && phoneNumberId) {
     try {
-      const res = await fetch(`https://facebook.com{phoneNumberId}/messages`, {
+      const res = await fetch(`https://graph.facebook.com/v21.0/${phoneNumberId}/messages`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -47,7 +47,7 @@ export async function sendRealWhatsappMessage(params: {
   return {
     delivered: false,
     provider: 'fallback_link',
-    waLink: `https://wa.me{intlPhone}?text=${encodeURIComponent(params.messageText)}`,
+    waLink: `https://wa.me/${intlPhone}?text=${encodeURIComponent(params.messageText)}`,
   };
 }
 
